@@ -29,7 +29,6 @@ if "temp_messages" not in st.session_state:
     st.session_state.temp_messages = []
 
 # --- XỬ LÝ CSS HYBRID + ĐỒNG BỘ SIDEBAR TỐI ---
-# Khởi tạo biến kiểm tra dark_mode trước để dùng cho Sidebar CSS
 dark_mode = False
 
 st.title("💬 Phòng trò chuyện Đa tài khoản")
@@ -67,10 +66,8 @@ if st.session_state.accounts_data:
         st.header("⚙️ Cài đặt Payload")
         st.write(f"Đang cấu hình cho: **{username}**")
         
-        # Lấy thông tin hiện tại của tài khoản làm mặc định
         current_settings = st.session_state.account_settings[username]
         
-        # Đưa toàn bộ vào Form để có nút "Áp dụng" riêng biệt
         with st.form("payload_form"):
             new_name = st.text_input("Tên hiển thị:", value=current_settings["send_name"])
             new_image = st.text_input("Link Avatar (URL):", value=current_settings["send_image"])
@@ -79,7 +76,6 @@ if st.session_state.accounts_data:
             new_emoji = st.text_input("Emoji ID:", value=current_settings["emoji_id"])
             new_attachments = st.text_input("Link hình ảnh/File đính kèm:", value=current_settings["attachments"])
             
-            # Nút bấm áp dụng thay đổi
             submit_button = st.form_submit_button("Áp dụng thay đổi 💾", use_container_width=True)
             
             if submit_button:
@@ -95,11 +91,11 @@ if st.session_state.accounts_data:
                 time.sleep(0.5)
                 st.rerun()
 
-    # --- ÁP DỤNG CSS KHI BẬT CHẾ ĐỘ TỐI (BAO GỒM CẢ THANH SIDEBAR TRÁI) ---
+    # --- ÁP DỤNG CSS KHI BẬT CHẾ ĐỘ TỐI (ĐÃ SỬA LỖI NÚT ÁP DỤNG) ---
     if dark_mode:
         st.markdown("""
             <style>
-            /* Nhuộm đen toàn bộ nền ứng dụng, sườn trang chính và thanh Sidebar bên trái */
+            /* Nhuộm đen nền toàn diện */
             html, body, .stApp, 
             div[data-testid="stAppViewContainer"], 
             section[data-testid="stMain"], 
@@ -108,18 +104,31 @@ if st.session_state.accounts_data:
                 background-color: #0E1117 !important;
                 color: #C9D1D9 !important;
             }
-            /* Tiêu đề và các nhãn chữ trong trang & sidebar */
+            /* Chữ tiêu đề và label màu sáng */
             h1, h2, h3, label, summary, section[data-testid="stSidebar"] stMarkdown {
                 color: #F0F6FC !important;
             }
-            /* Ô nhập liệu và form ở Sidebar chuyển nền tối */
+            /* Form và ô nhập liệu bên Sidebar màu tối */
             div[data-testid="stForm"], input, select {
                 background-color: #161B22 !important;
                 color: #F0F6FC !important;
                 border: 1px solid #30363D !important;
             }
             
-            /* ÉP KHUNG CHAT VÀ TIN NHẮN GIỮ MÀU SÁNG RÕ RÀNG */
+            /* === ĐOẠN CSS FIX LỖI NÚT BẤM ÁP DỤNG TRONG FORM === */
+            div[data-testid="stForm"] button, 
+            button[data-testid*="FormSubmit"], 
+            button[data-testid*="secondaryFormSubmit"] {
+                background-color: #21262D !important;
+                color: #F0F6FC !important;
+                border: 1px solid #30363D !important;
+            }
+            div[data-testid="stForm"] button:hover {
+                background-color: #30363D !important;
+                border-color: #8b949e !important;
+            }
+            
+            /* ÉP KHUNG CHAT VÀ TIN NHẮN GIỮ MÀU SÁNG */
             div[data-testid="stChatMessage"] {
                 background-color: #F0F2F6 !important;
                 border: 1px solid #E2E8F0 !important;
@@ -132,7 +141,7 @@ if st.session_state.accounts_data:
                 color: #1E293B !important;
             }
             
-            /* ÉP DẢI BĂNG ĐÁY MÀU TỐI - XÓA 2 CÁNH TRẮNG */
+            /* ÉP DẢI BĂNG ĐÁY MÀU TỐI - XÓA NỀN TRẮNG */
             div[data-testid="stBottom"], 
             div[data-testid="stBottom"] > div, 
             div[data-testid="stBottomBlockContainer"] {
@@ -191,7 +200,7 @@ def render_chat_window(chanel_id, my_username, my_send_name):
         if not messages and not st.session_state.temp_messages:
             st.info("Chưa có tin nhắn nào hoặc Chanel ID không hợp lệ.")
 
-# Gọi hàm hiển thị khung chat lấy Chanel ID từ cấu hình đang lưu hành
+# Gọi hàm hiển thị khung chat
 current_chanel = st.session_state.account_settings[username]["chanel_id"]
 render_chat_window(current_chanel, username, st.session_state.account_settings[username]["send_name"])
 
