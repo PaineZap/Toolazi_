@@ -58,12 +58,12 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- XỬ LÝ CSS BẬT/TẮT CHẾ ĐỘ TỐI DYNAMIC (ĐÃ VÁ LỖI KHUNG CHAT ĐÁY) ---
+    # --- XỬ LÝ CSS BẬT/TẮT CHẾ ĐỘ TỐI DYNAMIC (ĐÃ VÁ LỖI HAI BÊN RÌA ĐÁY) ---
     if dark_mode:
         st.markdown("""
             <style>
-            /* Nền ứng dụng và màu chữ chủ đạo */
-            .stApp {
+            /* Nền ứng dụng, khung sườn chính và màu chữ chủ đạo */
+            html, body, .stApp, div[data-testid="stAppViewContainer"], section[data-testid="stMain"] {
                 background-color: #0E1117 !important;
                 color: #C9D1D9 !important;
             }
@@ -88,8 +88,13 @@ if st.session_state.accounts_data:
                 border: 1px solid #30363D !important;
             }
             
-            /* === ĐOẠN CSS SỬA LỖI KHUNG NHẬP LIỆU ĐÁY === */
-            /* Nhuộm đen toàn bộ vùng container nền dính ở đáy màn hình */
+            /* === ĐOẠN CSS SỬA TRIỆT ĐỂ LỖI 2 BÊN RÌA TRẮNG Ở ĐÁY === */
+            /* Nhuộm đen TOÀN BỘ dải băng đáy kéo dài từ mép trái sang mép phải màn hình */
+            div[data-testid="stBottom"] {
+                background-color: #0E1117 !important;
+                background: #0E1117 !important;
+            }
+            /* Vùng chứa khối chat ở giữa đáy */
             div[data-testid="stBottomBlockContainer"] {
                 background-color: #0E1117 !important;
             }
