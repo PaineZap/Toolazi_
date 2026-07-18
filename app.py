@@ -58,7 +58,7 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- XỬ LÝ CSS BẬT/TẮT CHẾ ĐỘ TỐI DYNAMIC (ĐÃ VÁ LỖI HAI BÊN RÌA ĐÁY) ---
+    # --- XỬ LÝ CSS BẬT/TẮT CHẾ ĐỘ TỐI DYNAMIC (ĐÃ VÁ LỖI TÀNG HÌNH BONG BÓNG CHAT) ---
     if dark_mode:
         st.markdown("""
             <style>
@@ -67,7 +67,7 @@ if st.session_state.accounts_data:
                 background-color: #0E1117 !important;
                 color: #C9D1D9 !important;
             }
-            /* Tiêu đề và nhãn chữ */
+            /* Tiêu đề và nhãn chữ chung */
             h1, h2, h3, p, label, span, summary {
                 color: #F0F6FC !important;
             }
@@ -82,33 +82,44 @@ if st.session_state.accounts_data:
                 color: #F0F6FC !important;
                 border: 1px solid #30363D !important;
             }
-            /* Bong bóng Chat của người khác (Assistant) */
-            div[data-testid="stChatMessage"] {
+            
+            /* === ĐOẠN CSS SỬA TRIỆT ĐỂ LỖI MẤT CHỮ TRONG BONG BÓNG CHAT === */
+            /* Ép toàn bộ các lớp bong bóng chat (cả Bạn gửi và Người khác gửi) về nền tối */
+            div[data-testid="stChatMessage"], 
+            div[data-testid="stChatMessage"] > div, 
+            div[data-testid="stChatMessageContent"],
+            div[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {
                 background-color: #161B22 !important;
+            }
+            /* Tạo viền mỏng quanh bong bóng cho đẹp mắt tách biệt */
+            div[data-testid="stChatMessage"] {
                 border: 1px solid #30363D !important;
+                border-radius: 8px !important;
+            }
+            /* Ép toàn bộ chữ bên trong bong bóng chat bắt buộc phải hiển thị màu trắng sáng */
+            div[data-testid="stChatMessage"] *,
+            div[data-testid="stChatMessage"] p,
+            div[data-testid="stChatMessage"] span,
+            div[data-testid="stChatMessage"] strong {
+                color: #F0F6FC !important;
             }
             
-            /* === ĐOẠN CSS SỬA TRIỆT ĐỂ LỖI 2 BÊN RÌA TRẮNG Ở ĐÁY === */
-            /* Nhuộm đen TOÀN BỘ dải băng đáy kéo dài từ mép trái sang mép phải màn hình */
+            /* === ĐOẠN CSS SỬA LỖI KHUNG NHẬP LIỆU ĐÁY === */
             div[data-testid="stBottom"] {
                 background-color: #0E1117 !important;
                 background: #0E1117 !important;
             }
-            /* Vùng chứa khối chat ở giữa đáy */
             div[data-testid="stBottomBlockContainer"] {
                 background-color: #0E1117 !important;
             }
-            /* Nhuộm đen vỏ bọc bo tròn bao quanh ô nhập chat */
             div[data-testid="stChatInput"] {
                 background-color: #161B22 !important;
                 border: 1px solid #30363D !important;
             }
-            /* Thay đổi màu nền vùng nhập text của ô chat */
             div[data-testid="stChatInput"] textarea {
                 background-color: transparent !important;
                 color: #F0F6FC !important;
             }
-            /* Đổi màu nút bấm gửi tin nhắn (Mũi tên lên) */
             div[data-testid="stChatInput"] button {
                 background-color: #21262D !important;
                 color: #F0F6FC !important;
