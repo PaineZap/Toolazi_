@@ -28,6 +28,10 @@ if "account_settings" not in st.session_state:
 if "temp_messages" not in st.session_state:
     st.session_state.temp_messages = []
 
+# Khởi tạo danh sách bộ nhớ ẩn các tin nhắn đã nhấn Clear
+if "cleared_messages" not in st.session_state:
+    st.session_state.cleared_messages = set()
+
 dark_mode = False
 
 st.title("💬 Phòng trò chuyện Đa tài khoản")
@@ -37,13 +41,15 @@ st.markdown("---")
 if st.session_state.accounts_data:
     account_names = [f"Acc {i+1} ({acc.get('send_usename', '...')})" for i, acc in enumerate(st.session_state.accounts_data)]
     
-    col1, col2, col3, col4 = st.columns([4, 1.5, 2, 1])
+    # Chia thêm cột col5 để đặt nút Clear tin nhắn
+    col1, col2, col3, col4, col5 = st.columns([3.5, 1.2, 1.8, 0.7, 0.7])
     
     with col1:
         selected_acc_name = st.selectbox("Chọn tài khoản hoạt động:", account_names)
         idx = account_names.index(selected_acc_name)
         cred = st.session_state.accounts_data[idx]
         username = cred.get('send_usename', 'unknown')
+        current_chanel = st.session_state.account_settings[username]["chanel_id"]
         
     with col2:
         st.markdown("<div style='padding-top: 35px;'></div>", unsafe_allow_html=True)
@@ -60,9 +66,22 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- THANH CÀI ĐẶT BÊN TRÁI (SIDEBAR) GỌN GÀNG ---
+    with col5:
+        st.markdown("<div style='padding-top: 28px;'></div>", unsafe_allow_html=True)
+        if st.button("🗑️", help="Xóa sạch toàn bộ tin nhắn trên màn hình hiện tại"):
+            # Lấy toàn bộ tin nhắn hiện tại để đưa vào danh sách đen cần ẩn đi
+            current_msgs = chat_api.fetch_msgs(current_chanel)
+            for m in current_msgs:
+                msg_key = f"{m.get('sender_name', '')}_{m.get('message', '')}"
+                st.session_state.cleared_messages.add(msg_key)
+            # Xóa luôn cả tin nhắn tạm thời đang chờ
+            st.session_state.temp_messages = []
+            st.toast("🧹 Đã làm sạch màn hình trò chuyện!")
+            time.sleep(0.5)
+            st.rerun()
+
+    # --- THANH CÀI ĐẶT BÊN TRÁI (SIDEBAR) GỌN GÀNG NGOẠI CỠ ---
     with st.sidebar:
-        # Gộp tên tài khoản vào subheader để tiết kiệm diện tích dòng
         st.subheader(f"⚙️ Cài đặt Payload ({username})")
         
         current_settings = st.session_state.account_settings[username]
@@ -90,31 +109,27 @@ if st.session_state.accounts_data:
                 time.sleep(0.5)
                 st.rerun()
 
-    # --- ĐOẠN ĐIỀU CHỈNH KÍCH THƯỚC SIDEBAR TOÀN CỤC (ÁP DỤNG MỌI CHẾ ĐỘ) ---
+    # --- ĐOẠN ĐIỀU CHỈNH KÍCH THƯỚC SIDEBAR TOÀN CỤC ---
     st.markdown("""
         <style>
-        /* 1. Mở rộng chiều rộng Sidebar sang bên phải thành 400px */
+        /* Mở rộng chiều rộng Sidebar sang bên phải thành 400px */
         section[data-testid="stSidebar"] {
             width: 400px !important;
             min-width: 400px !important;
         }
-        
-        /* 2. Đẩy toàn bộ nội dung trong Sidebar dịch hẳn lên trên sát đỉnh */
+        /* Đẩy nội dung Sidebar lên sát đỉnh */
         div[data-testid="stSidebarUserContent"] {
             padding-top: 0.8rem !important;
             padding-bottom: 0rem !important;
         }
-        
-        /* 3. Nén chặt khoảng cách Form để gom nút Áp Dụng lên cao không cần cuộn chuột */
+        /* Nén khoảng cách các ô nhập trong Form */
         div[data-testid="stForm"] {
             padding: 10px !important;
         }
-        /* Giảm khoảng cách block gap giữa các widget con */
         div[data-testid="stForm"] [data-testid="stVerticalBlock"] > div {
             padding-bottom: 2px !important;
             margin-bottom: 0px !important;
         }
-        /* Ép sát tiêu đề text vào ô input tương ứng */
         div[data-testid="stForm"] label {
             margin-bottom: 1px !important;
             padding-bottom: 0px !important;
@@ -126,7 +141,6 @@ if st.session_state.accounts_data:
     if dark_mode:
         st.markdown("""
             <style>
-            /* Nhuộm đen nền toàn diện */
             html, body, .stApp, 
             div[data-testid="stAppViewContainer"], 
             section[data-testid="stMain"], 
@@ -135,18 +149,16 @@ if st.session_state.accounts_data:
                 background-color: #0E1117 !important;
                 color: #C9D1D9 !important;
             }
-            /* Chữ tiêu đề và label màu sáng */
             h1, h2, h3, label, summary, section[data-testid="stSidebar"] stMarkdown {
                 color: #F0F6FC !important;
             }
-            /* Form và ô nhập liệu bên Sidebar màu tối */
             div[data-testid="stForm"], input, select {
                 background-color: #161B22 !important;
                 color: #F0F6FC !important;
                 border: 1px solid #30363D !important;
             }
             
-            /* Sửa lỗi nút bấm Áp dụng trong Form khi ở chế độ tối */
+            /* Sửa nút bấm Áp dụng trong Form tối màu rõ chữ */
             div[data-testid="stForm"] button, 
             button[data-testid*="FormSubmit"], 
             button[data-testid*="secondaryFormSubmit"] {
@@ -206,6 +218,12 @@ st.markdown("---")
 def render_chat_window(chanel_id, my_username, my_send_name):
     messages = chat_api.fetch_msgs(chanel_id)
     
+    # [TÍNH NĂNG 2] Lọc bỏ các tin nhắn cũ đã nằm trong danh sách bấm nút Clear
+    messages = [m for m in messages if f"{m.get('sender_name', '')}_{m.get('message', '')}" not in st.session_state.cleared_messages]
+    
+    # [TÍNH NĂNG 1] TỰ ĐỘNG CẮT BỚT: Chỉ giữ lại đúng 30 tin nhắn mới nhất để chống lag web
+    messages = messages[-30:]
+    
     server_texts = [m.get('message', '') for m in messages]
     st.session_state.temp_messages = [t for t in st.session_state.temp_messages if t['message'] not in server_texts]
     
@@ -229,7 +247,7 @@ def render_chat_window(chanel_id, my_username, my_send_name):
                     st.write(f"**Bạn ({my_username}):** {t['message']}")
                     
         if not messages and not st.session_state.temp_messages:
-            st.info("Chưa có tin nhắn nào hoặc Chanel ID không hợp lệ.")
+            st.info("Chưa có tin nhắn nào hoặc màn hình vừa được dọn sạch.")
 
 # Gọi hàm hiển thị khung chat
 current_chanel = st.session_state.account_settings[username]["chanel_id"]
