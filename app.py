@@ -58,53 +58,61 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- XỬ LÝ CSS BẬT/TẮT CHẾ ĐỘ TỐI DYNAMIC (ĐÃ VÁ LỖI TÀNG HÌNH BONG BÓNG CHAT) ---
+    # --- BIỆN PHÁP MẠNH CSS: VÁ TRIỆT ĐỂ LỖI NỀN TRẮNG BONG BÓNG CHAT USER ---
     if dark_mode:
         st.markdown("""
             <style>
-            /* Nền ứng dụng, khung sườn chính và màu chữ chủ đạo */
+            /* 1. Thay đổi tận gốc biến cấu hình Theme hệ thống của Streamlit */
+            :root, .stApp, [data-testid="stAppViewContainer"] {
+                --background-color: #0E1117 !important;
+                --secondary-background-color: #161B22 !important;
+                --text-color: #F0F6FC !important;
+            }
+            
+            /* 2. Nhuộm đen toàn diện nền ứng dụng */
             html, body, .stApp, div[data-testid="stAppViewContainer"], section[data-testid="stMain"] {
                 background-color: #0E1117 !important;
                 color: #C9D1D9 !important;
             }
-            /* Tiêu đề và nhãn chữ chung */
+            
+            /* 3. Ép chữ tiêu đề và văn bản chuyển sang màu sáng tương phản */
             h1, h2, h3, p, label, span, summary {
                 color: #F0F6FC !important;
             }
-            /* Hộp cài đặt nâng cao Expander */
+            
+            /* 4. ĐÈ BẬT LỚP NỀN ẨN CỦA BONG BÓNG CHAT USER VÀ ASSISTANT */
+            div[data-testid="stChatMessage"] {
+                background-color: #161B22 !important;
+                border: 1px solid #30363D !important;
+                border-radius: 8px !important;
+            }
+            /* KHÓA CHẾT: Ép tất cả các lớp layer con bên trong bong bóng phải thành TRONG SUỐT */
+            div[data-testid="stChatMessage"] div, 
+            div[data-testid="stChatMessageContent"], 
+            div[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {
+                background-color: transparent !important;
+                background: transparent !important;
+            }
+            /* Đảm bảo toàn bộ chữ bên trong hộp chat phải là màu trắng sáng */
+            div[data-testid="stChatMessage"] *, 
+            div[data-testid="stChatMessage"] p, 
+            div[data-testid="stChatMessage"] span,
+            div[data-testid="stChatMessage"] strong {
+                color: #F0F6FC !important;
+            }
+            
+            /* 5. Cài đặt Payload nâng cao (Expander) */
             div[data-testid="stExpander"] {
                 background-color: #161B22 !important;
                 border: 1px solid #30363D !important;
             }
-            /* Các ô nhập liệu Cài đặt Payload */
             input, select {
                 background-color: #21262D !important;
                 color: #F0F6FC !important;
                 border: 1px solid #30363D !important;
             }
             
-            /* === ĐOẠN CSS SỬA TRIỆT ĐỂ LỖI MẤT CHỮ TRONG BONG BÓNG CHAT === */
-            /* Ép toàn bộ các lớp bong bóng chat (cả Bạn gửi và Người khác gửi) về nền tối */
-            div[data-testid="stChatMessage"], 
-            div[data-testid="stChatMessage"] > div, 
-            div[data-testid="stChatMessageContent"],
-            div[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {
-                background-color: #161B22 !important;
-            }
-            /* Tạo viền mỏng quanh bong bóng cho đẹp mắt tách biệt */
-            div[data-testid="stChatMessage"] {
-                border: 1px solid #30363D !important;
-                border-radius: 8px !important;
-            }
-            /* Ép toàn bộ chữ bên trong bong bóng chat bắt buộc phải hiển thị màu trắng sáng */
-            div[data-testid="stChatMessage"] *,
-            div[data-testid="stChatMessage"] p,
-            div[data-testid="stChatMessage"] span,
-            div[data-testid="stChatMessage"] strong {
-                color: #F0F6FC !important;
-            }
-            
-            /* === ĐOẠN CSS SỬA LỖI KHUNG NHẬP LIỆU ĐÁY === */
+            /* 6. Fix dải băng nền trắng ở đáy màn hình */
             div[data-testid="stBottom"] {
                 background-color: #0E1117 !important;
                 background: #0E1117 !important;
