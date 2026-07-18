@@ -28,7 +28,6 @@ if "account_settings" not in st.session_state:
 if "temp_messages" not in st.session_state:
     st.session_state.temp_messages = []
 
-# --- XỬ LÝ CSS HYBRID + ĐỒNG BỘ SIDEBAR TỐI ---
 dark_mode = False
 
 st.title("💬 Phòng trò chuyện Đa tài khoản")
@@ -61,10 +60,10 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- THANH CÀI ĐẶT BÊN TRÁI (SIDEBAR) + NÚT ÁP DỤNG ---
+    # --- THANH CÀI ĐẶT BÊN TRÁI (SIDEBAR) GỌN GÀNG ---
     with st.sidebar:
-        st.header("⚙️ Cài đặt Payload")
-        st.write(f"Đang cấu hình cho: **{username}**")
+        # Gộp tên tài khoản vào subheader để tiết kiệm diện tích dòng
+        st.subheader(f"⚙️ Cài đặt Payload ({username})")
         
         current_settings = st.session_state.account_settings[username]
         
@@ -91,7 +90,39 @@ if st.session_state.accounts_data:
                 time.sleep(0.5)
                 st.rerun()
 
-    # --- ÁP DỤNG CSS KHI BẬT CHẾ ĐỘ TỐI (ĐÃ SỬA LỖI NÚT ÁP DỤNG) ---
+    # --- ĐOẠN ĐIỀU CHỈNH KÍCH THƯỚC SIDEBAR TOÀN CỤC (ÁP DỤNG MỌI CHẾ ĐỘ) ---
+    st.markdown("""
+        <style>
+        /* 1. Mở rộng chiều rộng Sidebar sang bên phải thành 400px */
+        section[data-testid="stSidebar"] {
+            width: 400px !important;
+            min-width: 400px !important;
+        }
+        
+        /* 2. Đẩy toàn bộ nội dung trong Sidebar dịch hẳn lên trên sát đỉnh */
+        div[data-testid="stSidebarUserContent"] {
+            padding-top: 0.8rem !important;
+            padding-bottom: 0rem !important;
+        }
+        
+        /* 3. Nén chặt khoảng cách Form để gom nút Áp Dụng lên cao không cần cuộn chuột */
+        div[data-testid="stForm"] {
+            padding: 10px !important;
+        }
+        /* Giảm khoảng cách block gap giữa các widget con */
+        div[data-testid="stForm"] [data-testid="stVerticalBlock"] > div {
+            padding-bottom: 2px !important;
+            margin-bottom: 0px !important;
+        }
+        /* Ép sát tiêu đề text vào ô input tương ứng */
+        div[data-testid="stForm"] label {
+            margin-bottom: 1px !important;
+            padding-bottom: 0px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # --- ÁP DỤNG MÀU SẮC KHI BẬT CHẾ ĐỘ TỐI ---
     if dark_mode:
         st.markdown("""
             <style>
@@ -115,7 +146,7 @@ if st.session_state.accounts_data:
                 border: 1px solid #30363D !important;
             }
             
-            /* === ĐOẠN CSS FIX LỖI NÚT BẤM ÁP DỤNG TRONG FORM === */
+            /* Sửa lỗi nút bấm Áp dụng trong Form khi ở chế độ tối */
             div[data-testid="stForm"] button, 
             button[data-testid*="FormSubmit"], 
             button[data-testid*="secondaryFormSubmit"] {
@@ -141,7 +172,7 @@ if st.session_state.accounts_data:
                 color: #1E293B !important;
             }
             
-            /* ÉP DẢI BĂNG ĐÁY MÀU TỐI - XÓA NỀN TRẮNG */
+            /* ÉP DẢI BĂNG ĐÁY MÀU TỐI - XÓA NỀN TRẮNG RÌA */
             div[data-testid="stBottom"], 
             div[data-testid="stBottom"] > div, 
             div[data-testid="stBottomBlockContainer"] {
