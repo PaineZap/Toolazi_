@@ -31,11 +31,10 @@ if "temp_messages" not in st.session_state:
 st.title("💬 Phòng trò chuyện Đa tài khoản")
 st.markdown("---")
 
-# --- KHU VỰC ĐIỀU KHIỂN CHÍNH (CÓ THÊM CHẾ ĐỘ TỐI) ---
+# --- KHU VỰC ĐIỀU KHIỂN CHÍNH ---
 if st.session_state.accounts_data:
     account_names = [f"Acc {i+1} ({acc.get('send_usename', '...')})" for i, acc in enumerate(st.session_state.accounts_data)]
     
-    # Chia thành 4 cột để giao diện cân đối
     col1, col2, col3, col4 = st.columns([4, 1.5, 2, 1])
     
     with col1:
@@ -59,7 +58,7 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- XỬ LÝ CSS BẬT/TẮT CHẾ ĐỘ TỐI DYNAMIC ---
+    # --- XỬ LÝ CSS BẬT/TẮT CHẾ ĐỘ TỐI DYNAMIC (ĐÃ VÁ LỖI KHUNG CHAT ĐÁY) ---
     if dark_mode:
         st.markdown("""
             <style>
@@ -77,8 +76,8 @@ if st.session_state.accounts_data:
                 background-color: #161B22 !important;
                 border: 1px solid #30363D !important;
             }
-            /* Các ô nhập liệu Input & Textarea */
-            input, textarea, select {
+            /* Các ô nhập liệu Cài đặt Payload */
+            input, select {
                 background-color: #21262D !important;
                 color: #F0F6FC !important;
                 border: 1px solid #30363D !important;
@@ -88,9 +87,27 @@ if st.session_state.accounts_data:
                 background-color: #161B22 !important;
                 border: 1px solid #30363D !important;
             }
-            /* Thanh nhập chat dưới cùng */
-            div[data-testid="stChatInput"] {
+            
+            /* === ĐOẠN CSS SỬA LỖI KHUNG NHẬP LIỆU ĐÁY === */
+            /* Nhuộm đen toàn bộ vùng container nền dính ở đáy màn hình */
+            div[data-testid="stBottomBlockContainer"] {
                 background-color: #0E1117 !important;
+            }
+            /* Nhuộm đen vỏ bọc bo tròn bao quanh ô nhập chat */
+            div[data-testid="stChatInput"] {
+                background-color: #161B22 !important;
+                border: 1px solid #30363D !important;
+            }
+            /* Thay đổi màu nền vùng nhập text của ô chat */
+            div[data-testid="stChatInput"] textarea {
+                background-color: transparent !important;
+                color: #F0F6FC !important;
+            }
+            /* Đổi màu nút bấm gửi tin nhắn (Mũi tên lên) */
+            div[data-testid="stChatInput"] button {
+                background-color: #21262D !important;
+                color: #F0F6FC !important;
+                border: 1px solid #30363D !important;
             }
             </style>
         """, unsafe_allow_html=True)
