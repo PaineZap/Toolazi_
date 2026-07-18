@@ -32,8 +32,6 @@ if "temp_messages" not in st.session_state:
 if "cleared_messages" not in st.session_state:
     st.session_state.cleared_messages = set()
 
-dark_mode = False
-
 st.title("💬 Phòng trò chuyện Đa tài khoản")
 st.markdown("---")
 
@@ -41,8 +39,8 @@ st.markdown("---")
 if st.session_state.accounts_data:
     account_names = [f"Acc {i+1} ({acc.get('send_usename', '...')})" for i, acc in enumerate(st.session_state.accounts_data)]
     
-    # Chia thêm cột col5 để đặt nút Clear tin nhắn
-    col1, col2, col3, col4, col5 = st.columns([3.5, 1.2, 1.8, 0.7, 0.7])
+    # Rút gọn lại thành 4 cột gọn gàng sau khi bỏ Chế độ tối
+    col1, col2, col3, col4 = st.columns([5.0, 1.5, 0.7, 0.7])
     
     with col1:
         selected_acc_name = st.selectbox("Chọn tài khoản hoạt động:", account_names)
@@ -56,31 +54,25 @@ if st.session_state.accounts_data:
         anonymous = st.checkbox("Ẩn danh", value=True)
         
     with col3:
-        st.markdown("<div style='padding-top: 35px;'></div>", unsafe_allow_html=True)
-        dark_mode = st.checkbox("Chế độ tối 🌙", value=False)
-        
-    with col4:
         st.markdown("<div style='padding-top: 28px;'></div>", unsafe_allow_html=True)
         if st.button("🔄", help="Đồng bộ dữ liệu mới từ Gist"):
             chat_api.load_accounts()
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    with col5:
+    with col4:
         st.markdown("<div style='padding-top: 28px;'></div>", unsafe_allow_html=True)
         if st.button("🗑️", help="Xóa sạch toàn bộ tin nhắn trên màn hình hiện tại"):
-            # Lấy toàn bộ tin nhắn hiện tại để đưa vào danh sách đen cần ẩn đi
             current_msgs = chat_api.fetch_msgs(current_chanel)
             for m in current_msgs:
                 msg_key = f"{m.get('sender_name', '')}_{m.get('message', '')}"
                 st.session_state.cleared_messages.add(msg_key)
-            # Xóa luôn cả tin nhắn tạm thời đang chờ
             st.session_state.temp_messages = []
             st.toast("🧹 Đã làm sạch màn hình trò chuyện!")
             time.sleep(0.5)
             st.rerun()
 
-    # --- THANH CÀI ĐẶT BÊN TRÁI (SIDEBAR) GỌN GÀNG NGOẠI CỠ ---
+    # --- THANH CÀI ĐẶT BÊN TRÁI (SIDEBAR) GIỮ NGUYÊN LAYOUT TỐI ƯU ---
     with st.sidebar:
         st.subheader(f"⚙️ Cài đặt Payload ({username})")
         
@@ -109,20 +101,20 @@ if st.session_state.accounts_data:
                 time.sleep(0.5)
                 st.rerun()
 
-    # --- ĐOẠN ĐIỀU CHỈNH KÍCH THƯỚC SIDEBAR TOÀN CỤC ---
+    # --- ĐIỀU CHỈNH KÍCH THƯỚC BỐ CỤC SIDEBAR (CHỈ GIỮ LẠI ĐỘ RỘNG VÀ CỰ LY, KHÔNG ÉP MÀU) ---
     st.markdown("""
         <style>
-        /* Mở rộng chiều rộng Sidebar sang bên phải thành 400px */
+        /* Mở rộng chiều rộng Sidebar sang bên phải thành 400px để dễ nhìn */
         section[data-testid="stSidebar"] {
             width: 400px !important;
             min-width: 400px !important;
         }
-        /* Đẩy nội dung Sidebar lên sát đỉnh */
+        /* Đẩy nội dung Sidebar lên sát đỉnh để không cần cuộn chuột */
         div[data-testid="stSidebarUserContent"] {
             padding-top: 0.8rem !important;
             padding-bottom: 0rem !important;
         }
-        /* Nén khoảng cách các ô nhập trong Form */
+        /* Nén khoảng cách các ô nhập trong Form và kéo nút Áp dụng lên cao */
         div[data-testid="stForm"] {
             padding: 10px !important;
         }
@@ -137,76 +129,6 @@ if st.session_state.accounts_data:
         </style>
     """, unsafe_allow_html=True)
 
-    # --- ÁP DỤNG MÀU SẮC KHI BẬT CHẾ ĐỘ TỐI ---
-    if dark_mode:
-        st.markdown("""
-            <style>
-            html, body, .stApp, 
-            div[data-testid="stAppViewContainer"], 
-            section[data-testid="stMain"], 
-            section[data-testid="stSidebar"],
-            section[data-testid="stSidebar"] > div {
-                background-color: #0E1117 !important;
-                color: #C9D1D9 !important;
-            }
-            h1, h2, h3, label, summary, section[data-testid="stSidebar"] stMarkdown {
-                color: #F0F6FC !important;
-            }
-            div[data-testid="stForm"], input, select {
-                background-color: #161B22 !important;
-                color: #F0F6FC !important;
-                border: 1px solid #30363D !important;
-            }
-            
-            /* Sửa nút bấm Áp dụng trong Form tối màu rõ chữ */
-            div[data-testid="stForm"] button, 
-            button[data-testid*="FormSubmit"], 
-            button[data-testid*="secondaryFormSubmit"] {
-                background-color: #21262D !important;
-                color: #F0F6FC !important;
-                border: 1px solid #30363D !important;
-            }
-            div[data-testid="stForm"] button:hover {
-                background-color: #30363D !important;
-                border-color: #8b949e !important;
-            }
-            
-            /* ÉP KHUNG CHAT VÀ TIN NHẮN GIỮ MÀU SÁNG */
-            div[data-testid="stChatMessage"] {
-                background-color: #F0F2F6 !important;
-                border: 1px solid #E2E8F0 !important;
-                border-radius: 8px !important;
-            }
-            div[data-testid="stChatMessage"] *, 
-            div[data-testid="stChatMessage"] p, 
-            div[data-testid="stChatMessage"] span,
-            div[data-testid="stChatMessage"] strong {
-                color: #1E293B !important;
-            }
-            
-            /* ÉP DẢI BĂNG ĐÁY MÀU TỐI - XÓA NỀN TRẮNG RÌA */
-            div[data-testid="stBottom"], 
-            div[data-testid="stBottom"] > div, 
-            div[data-testid="stBottomBlockContainer"] {
-                background-color: #0E1117 !important;
-                background: #0E1117 !important;
-            }
-            
-            /* KHUNG Ô NHẬP LIỆU GIỮ MÀU SÁNG */
-            div[data-testid="stChatInput"] {
-                background-color: #FFFFFF !important;
-                border: 1px solid #CBD5E1 !important;
-            }
-            div[data-testid="stChatInput"] textarea {
-                color: #0F172A !important;
-            }
-            div[data-testid="stChatInput"] button {
-                background-color: #F1F5F9 !important;
-                color: #0F172A !important;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
 else:
     st.error("Không tìm thấy dữ liệu tài khoản từ Gist!")
     st.stop()
@@ -218,10 +140,10 @@ st.markdown("---")
 def render_chat_window(chanel_id, my_username, my_send_name):
     messages = chat_api.fetch_msgs(chanel_id)
     
-    # [TÍNH NĂNG 2] Lọc bỏ các tin nhắn cũ đã nằm trong danh sách bấm nút Clear
+    # Lọc bỏ các tin nhắn cũ đã nằm trong danh sách bấm nút Clear
     messages = [m for m in messages if f"{m.get('sender_name', '')}_{m.get('message', '')}" not in st.session_state.cleared_messages]
     
-    # [TÍNH NĂNG 1] TỰ ĐỘNG CẮT BỚT: Chỉ giữ lại đúng 30 tin nhắn mới nhất để chống lag web
+    # TỰ ĐỘNG CẮT BỚT: Chỉ giữ lại đúng 30 tin nhắn mới nhất để chống lag web
     messages = messages[-30:]
     
     server_texts = [m.get('message', '') for m in messages]
