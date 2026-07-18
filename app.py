@@ -24,78 +24,104 @@ if "account_settings" not in st.session_state:
             "attachments": ""
         }
 
+# Hộp chứa tin nhắn tạm thời để hiển thị LẬP TỨC lên màn hình khi vừa nhấn Enter
+if "temp_messages" not in st.session_state:
+    st.session_state.temp_messages = []
+
 st.title("💬 Phòng trò chuyện Đa tài khoản")
+st.markdown("---")
 
-# --- THANH ĐIỀU HƯỚNG SIDEBAR ---
-st.sidebar.header("Cấu hình hệ thống")
-
+# --- KHU VỰC ĐIỀU KHIỂN CHÍNH TRÊN TRANG CHÍNH ---
 if st.session_state.accounts_data:
     account_names = [f"Acc {i+1} ({acc.get('send_usename', '...')})" for i, acc in enumerate(st.session_state.accounts_data)]
-    selected_acc_name = st.sidebar.selectbox("Chọn tài khoản hoạt động", account_names)
     
-    idx = account_names.index(selected_acc_name)
-    cred = st.session_state.accounts_data[idx]
-    username = cred.get('send_usename', 'unknown')
+    col1, col2, col3 = st.columns([5, 2, 1])
     
-    anonymous = st.sidebar.checkbox("Chế độ ẩn danh", value=True)
-    
-    if st.sidebar.button("🔄 Đồng bộ dữ liệu Gist"):
-        chat_api.load_accounts()
-        st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
-        st.rerun()
+    with col1:
+        selected_acc_name = st.selectbox("Chọn tài khoản hoạt động:", account_names)
+        idx = account_names.index(selected_acc_name)
+        cred = st.session_state.accounts_data[idx]
+        username = cred.get('send_usename', 'unknown')
         
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("⚙️ Tùy chỉnh Payload")
-    
-    settings = st.session_state.account_settings[username]
-    
-    settings["send_name"] = st.text_input("Tên hiển thị:", value=settings["send_name"])
-    settings["send_image"] = st.text_input("Link Avatar (URL):", value=settings["send_image"])
-    settings["chanel_id"] = st.text_input("Chanel ID:", value=settings["chanel_id"])
-    settings["type"] = st.text_input("Type:", value=settings["type"])
-    settings["emoji_id"] = st.text_input("Emoji ID:", value=settings["emoji_id"])
-    settings["attachments"] = st.text_input("Link đính kèm (File/Ảnh):", value=settings["attachments"])
-    
-    st.session_state.account_settings[username] = settings
+    with col2:
+        st.markdown("<div style='padding-top: 35px;'></div>", unsafe_allow_html=True)
+        anonymous = st.checkbox("Ẩn danh", value=True)
+        
+    with col3:
+        st.markdown("<div style='padding-top: 28px;'></div>", unsafe_allow_html=True)
+        if st.button("🔄", help="Đồng bộ dữ liệu mới từ Gist"):
+            chat_api.load_accounts()
+            st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
+            st.rerun()
+
+    # --- HỘP THOẠI CÀI ĐẶT PAYLOAD ---
+    with st.expander("⚙️ Tùy chỉnh nâng cao Payload (Tên, Ảnh, Chanel, File đính kèm...)"):
+        settings = st.session_state.account_settings[username]
+        
+        settings["send_name"] = st.text_input("Tên hiển thị:", value=settings["send_name"])
+        settings["send_image"] = st.text_input("Link Avatar (URL):", value=settings["send_image"])
+        settings["chanel_id"] = st.text_input("Chanel ID:", value=settings["chanel_id"])
+        settings["type"] = st.text_input("Type:", value=settings["type"])
+        settings["emoji_id"] = st.text_input("Emoji ID:", value=settings["emoji_id"])
+        settings["attachments"] = st.text_input("Link hình ảnh/File đính kèm:", value=settings["attachments"])
+        
+        st.session_state.account_settings[username] = settings
 else:
-    st.sidebar.error("Không tìm thấy dữ liệu tài khoản từ Gist!")
+    st.error("Không tìm thấy dữ liệu tài khoản từ Gist!")
     st.stop()
 
-# --- KHU VỰC HIỂN THỊ TIN NHẮN TỰ ĐỘNG CẬP NHẬT (REAL-TIME FRAGMENT) ---
-# Cơ chế chạy ngầm: Chỉ load lại nội dung trong hàm này mỗi 3 giây mà không load lại cả trang Web
+st.markdown("---")
+
+# --- KHU VỰC HIỂN THỊ TIN NHẮN TỰ ĐỘNG CẬP NHẬT REAL-TIME ---
 @st.fragment(run_every="3s")
 def render_chat_window(chanel_id, my_username, my_send_name):
+    # Lấy dữ liệu tin nhắn mới từ Lazi
     messages = chat_api.fetch_msgs(chanel_id)
     
-    chat_container = st.container(height=450)
+    # Kiểm tra xem tin nhắn tạm thời nào đã được Lazi cập nhật thành công thì xóa khỏi hàng đợi tạm
+    server_texts = [m.get('message', '') for m in messages]
+    st.session_state.temp_messages = [t for t in st.session_state.temp_messages if t['message'] not in server_texts]
+    
+    chat_container = st.container(height=400)
     with chat_container:
+        # 1. Hiển thị tin nhắn chính thức tải từ server về
         if messages:
-            # Đảo ngược danh sách để tin mới luôn cuộn xuống dưới cùng của khung chat
             for m in reversed(messages): 
                 sender = m.get('sender_name', 'Ẩn danh')
                 msg_text = m.get('message', '')
                 
-                # Phân biệt tin nhắn của mình gửi (bên phải) và người khác (bên trái)
                 if my_username in sender or sender == my_send_name:
                     with st.chat_message("user"):
                         st.write(f"**Bạn ({my_username}):** {msg_text}")
                 else:
                     with st.chat_message("assistant"):
                         st.write(f"**{sender}:** {msg_text}")
-        else:
+        
+        # 2. Hiển thị NGAY LẬP TỨC tin nhắn vừa ấn gửi (Trong khi chờ server Lazi load xong)
+        for t in st.session_state.temp_messages:
+            if t['username'] == my_username:
+                with st.chat_message("user"):
+                    st.write(f"**Bạn ({my_username}):** {t['message']}")
+                    
+        if not messages and not st.session_state.temp_messages:
             st.info("Chưa có tin nhắn nào hoặc Chanel ID không hợp lệ.")
 
-# Gọi hàm hiển thị khung chat chạy tự động cập nhật
+# Gọi hàm hiển thị khung chat
 current_chanel = st.session_state.account_settings[username]["chanel_id"]
 render_chat_window(current_chanel, username, st.session_state.account_settings[username]["send_name"])
 
-# --- Ô NHẬP TIN NHẮN ---
+# --- Ô NHẬP TIN NHẮN CHUẨN WEB TELEGRAM ---
 if msg_input := st.chat_input("Nhập tin nhắn và nhấn Enter..."):
     current_settings = st.session_state.account_settings[username]
     
-    # Gửi tin nhắn ngầm lên hệ thống Lazi
+    # Đút tin nhắn vào hàng đợi hiển thị tạm thời để UI cập nhật ngay tức thì
+    st.session_state.temp_messages.append({
+        "username": username,
+        "message": msg_input
+    })
+    
+    # Tiến hành gửi payload ngầm lên hệ thống Lazi
     chat_api.send_msg(msg_input, cred, current_settings, anonymous)
     
     st.toast("🚀 Gửi tin nhắn thành công!")
-    time.sleep(0.3) # Giảm độ trễ xuống một chút cho mượt
-    st.rerun() # Buộc app làm mới ngay lập tức để hiện tin vừa gửi mà không cần đợi vòng lặp 3s
+    st.rerun() # Kích hoạt vẽ lại màn hình để hiện tin nhắn tạm ngay lập tức
