@@ -28,10 +28,14 @@ if "account_settings" not in st.session_state:
 if "temp_messages" not in st.session_state:
     st.session_state.temp_messages = []
 
+# --- XỬ LÝ CSS HYBRID + ĐỒNG BỘ SIDEBAR TỐI ---
+# Khởi tạo biến kiểm tra dark_mode trước để dùng cho Sidebar CSS
+dark_mode = False
+
 st.title("💬 Phòng trò chuyện Đa tài khoản")
 st.markdown("---")
 
-# --- KHU VỰC ĐIỀU KHIỂN CHÍNH ---
+# --- KHU VỰC ĐIỀU KHIỂN CHÍNH (Ở GIỮA) ---
 if st.session_state.accounts_data:
     account_names = [f"Acc {i+1} ({acc.get('send_usename', '...')})" for i, acc in enumerate(st.session_state.accounts_data)]
     
@@ -58,31 +62,64 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- XỬ LÝ CSS HYBRID: NỀN TỐI - KHUNG CHAT SÁNG (ĐÃ SỬA TRIỆT ĐỂ LỖI 2 CÁNH TRẮNG) ---
+    # --- THANH CÀI ĐẶT BÊN TRÁI (SIDEBAR) + NÚT ÁP DỤNG ---
+    with st.sidebar:
+        st.header("⚙️ Cài đặt Payload")
+        st.write(f"Đang cấu hình cho: **{username}**")
+        
+        # Lấy thông tin hiện tại của tài khoản làm mặc định
+        current_settings = st.session_state.account_settings[username]
+        
+        # Đưa toàn bộ vào Form để có nút "Áp dụng" riêng biệt
+        with st.form("payload_form"):
+            new_name = st.text_input("Tên hiển thị:", value=current_settings["send_name"])
+            new_image = st.text_input("Link Avatar (URL):", value=current_settings["send_image"])
+            new_chanel = st.text_input("Chanel ID:", value=current_settings["chanel_id"])
+            new_type = st.text_input("Type:", value=current_settings["type"])
+            new_emoji = st.text_input("Emoji ID:", value=current_settings["emoji_id"])
+            new_attachments = st.text_input("Link hình ảnh/File đính kèm:", value=current_settings["attachments"])
+            
+            # Nút bấm áp dụng thay đổi
+            submit_button = st.form_submit_button("Áp dụng thay đổi 💾", use_container_width=True)
+            
+            if submit_button:
+                st.session_state.account_settings[username] = {
+                    "send_name": new_name,
+                    "send_image": new_image,
+                    "chanel_id": new_chanel,
+                    "type": new_type,
+                    "emoji_id": new_emoji,
+                    "attachments": new_attachments
+                }
+                st.toast("🎯 Đã áp dụng cấu hình mới thành công!")
+                time.sleep(0.5)
+                st.rerun()
+
+    # --- ÁP DỤNG CSS KHI BẬT CHẾ ĐỘ TỐI (BAO GỒM CẢ THANH SIDEBAR TRÁI) ---
     if dark_mode:
         st.markdown("""
             <style>
-            /* 1. Nhuộm đen toàn bộ nền ứng dụng và sườn trang */
-            html, body, .stApp, div[data-testid="stAppViewContainer"], section[data-testid="stMain"] {
+            /* Nhuộm đen toàn bộ nền ứng dụng, sườn trang chính và thanh Sidebar bên trái */
+            html, body, .stApp, 
+            div[data-testid="stAppViewContainer"], 
+            section[data-testid="stMain"], 
+            section[data-testid="stSidebar"],
+            section[data-testid="stSidebar"] > div {
                 background-color: #0E1117 !important;
                 color: #C9D1D9 !important;
             }
-            /* Tiêu đề và nhãn chữ điều khiển màu trắng */
-            h1, h2, h3, label, summary {
+            /* Tiêu đề và các nhãn chữ trong trang & sidebar */
+            h1, h2, h3, label, summary, section[data-testid="stSidebar"] stMarkdown {
                 color: #F0F6FC !important;
             }
-            /* Hộp cài đặt nâng cao Expander và ô chọn màu tối */
-            div[data-testid="stExpander"] {
+            /* Ô nhập liệu và form ở Sidebar chuyển nền tối */
+            div[data-testid="stForm"], input, select {
                 background-color: #161B22 !important;
-                border: 1px solid #30363D !important;
-            }
-            input, select {
-                background-color: #21262D !important;
                 color: #F0F6FC !important;
                 border: 1px solid #30363D !important;
             }
             
-            /* 2. ÉP KHUNG CHAT VÀ TIN NHẮN GIỮ MÀU SÁNG RÕ RÀNG */
+            /* ÉP KHUNG CHAT VÀ TIN NHẮN GIỮ MÀU SÁNG RÕ RÀNG */
             div[data-testid="stChatMessage"] {
                 background-color: #F0F2F6 !important;
                 border: 1px solid #E2E8F0 !important;
@@ -95,8 +132,7 @@ if st.session_state.accounts_data:
                 color: #1E293B !important;
             }
             
-            /* 3. ÉP DẢI BĂNG ĐÁY MÀU TỐI - XÓA BỎ HOÀN TOÀN 2 CÁNH TRẮNG RÌA NGOÀI */
-            /* Nhuộm đen toàn bộ bao gồm cả lớp div ẩn trung gian của Streamlit */
+            /* ÉP DẢI BĂNG ĐÁY MÀU TỐI - XÓA 2 CÁNH TRẮNG */
             div[data-testid="stBottom"], 
             div[data-testid="stBottom"] > div, 
             div[data-testid="stBottomBlockContainer"] {
@@ -104,16 +140,14 @@ if st.session_state.accounts_data:
                 background: #0E1117 !important;
             }
             
-            /* 4. KHUNG Ô NHẬP LIỆU GIỮ MÀU SÁNG TINH KHÔI */
+            /* KHUNG Ô NHẬP LIỆU GIỮ MÀU SÁNG */
             div[data-testid="stChatInput"] {
                 background-color: #FFFFFF !important;
                 border: 1px solid #CBD5E1 !important;
             }
-            /* Chữ bạn đang gõ hiển thị màu đen rõ ràng */
             div[data-testid="stChatInput"] textarea {
                 color: #0F172A !important;
             }
-            /* Nút bấm gửi mũi tên */
             div[data-testid="stChatInput"] button {
                 background-color: #F1F5F9 !important;
                 color: #0F172A !important;
@@ -121,18 +155,6 @@ if st.session_state.accounts_data:
             </style>
         """, unsafe_allow_html=True)
 
-    # --- HỘP THOẠI CÀI ĐẶT PAYLOAD ---
-    with st.expander("⚙️ Tùy chỉnh nâng cao Payload (Tên, Ảnh, Chanel, File đính kèm...)"):
-        settings = st.session_state.account_settings[username]
-        
-        settings["send_name"] = st.text_input("Tên hiển thị:", value=settings["send_name"])
-        settings["send_image"] = st.text_input("Link Avatar (URL):", value=settings["send_image"])
-        settings["chanel_id"] = st.text_input("Chanel ID:", value=settings["chanel_id"])
-        settings["type"] = st.text_input("Type:", value=settings["type"])
-        settings["emoji_id"] = st.text_input("Emoji ID:", value=settings["emoji_id"])
-        settings["attachments"] = st.text_input("Link hình ảnh/File đính kèm:", value=settings["attachments"])
-        
-        st.session_state.account_settings[username] = settings
 else:
     st.error("Không tìm thấy dữ liệu tài khoản từ Gist!")
     st.stop()
@@ -169,7 +191,7 @@ def render_chat_window(chanel_id, my_username, my_send_name):
         if not messages and not st.session_state.temp_messages:
             st.info("Chưa có tin nhắn nào hoặc Chanel ID không hợp lệ.")
 
-# Gọi hàm hiển thị khung chat
+# Gọi hàm hiển thị khung chat lấy Chanel ID từ cấu hình đang lưu hành
 current_chanel = st.session_state.account_settings[username]["chanel_id"]
 render_chat_window(current_chanel, username, st.session_state.account_settings[username]["send_name"])
 
