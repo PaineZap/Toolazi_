@@ -58,7 +58,7 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- XỬ LÝ CSS HYBRID: NỀN TỐI - KHUNG CHAT SÁNG BÌNH THƯỜNG ---
+    # --- XỬ LÝ CSS HYBRID: NỀN TỐI - KHUNG CHAT SÁNG (ĐÃ SỬA TRIỆT ĐỂ LỖI 2 CÁNH TRẮNG) ---
     if dark_mode:
         st.markdown("""
             <style>
@@ -83,13 +83,11 @@ if st.session_state.accounts_data:
             }
             
             /* 2. ÉP KHUNG CHAT VÀ TIN NHẮN GIỮ MÀU SÁNG RÕ RÀNG */
-            /* Bong bóng chat chuyển sang nền xám sáng/trắng mặc định */
             div[data-testid="stChatMessage"] {
                 background-color: #F0F2F6 !important;
                 border: 1px solid #E2E8F0 !important;
                 border-radius: 8px !important;
             }
-            /* KHÓA CHẾT CHỮ TRONG BOX CHAT: Bắt buộc chữ phải màu đen/xám đậm */
             div[data-testid="stChatMessage"] *, 
             div[data-testid="stChatMessage"] p, 
             div[data-testid="stChatMessage"] span,
@@ -97,12 +95,16 @@ if st.session_state.accounts_data:
                 color: #1E293B !important;
             }
             
-            /* 3. ÉP Ô NHẬP LIỆU ĐÁY GIỮ MÀU SÁNG BÌNH THƯỜNG */
-            /* Dải băng viền đáy vẫn màu tối để tiệp nền */
-            div[data-testid="stBottom"], div[data-testid="stBottomBlockContainer"] {
+            /* 3. ÉP DẢI BĂNG ĐÁY MÀU TỐI - XÓA BỎ HOÀN TOÀN 2 CÁNH TRẮNG RÌA NGOÀI */
+            /* Nhuộm đen toàn bộ bao gồm cả lớp div ẩn trung gian của Streamlit */
+            div[data-testid="stBottom"], 
+            div[data-testid="stBottom"] > div, 
+            div[data-testid="stBottomBlockContainer"] {
                 background-color: #0E1117 !important;
+                background: #0E1117 !important;
             }
-            /* Khung ô nhập chat màu trắng sáng tinh khôi */
+            
+            /* 4. KHUNG Ô NHẬP LIỆU GIỮ MÀU SÁNG TINH KHÔI */
             div[data-testid="stChatInput"] {
                 background-color: #FFFFFF !important;
                 border: 1px solid #CBD5E1 !important;
