@@ -58,50 +58,20 @@ if st.session_state.accounts_data:
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
 
-    # --- BIỆN PHÁP MẠNH CSS: VÁ TRIỆT ĐỂ LỖI NỀN TRẮNG BONG BÓNG CHAT USER ---
+    # --- XỬ LÝ CSS HYBRID: NỀN TỐI - KHUNG CHAT SÁNG BÌNH THƯỜNG ---
     if dark_mode:
         st.markdown("""
             <style>
-            /* 1. Thay đổi tận gốc biến cấu hình Theme hệ thống của Streamlit */
-            :root, .stApp, [data-testid="stAppViewContainer"] {
-                --background-color: #0E1117 !important;
-                --secondary-background-color: #161B22 !important;
-                --text-color: #F0F6FC !important;
-            }
-            
-            /* 2. Nhuộm đen toàn diện nền ứng dụng */
+            /* 1. Nhuộm đen toàn bộ nền ứng dụng và sườn trang */
             html, body, .stApp, div[data-testid="stAppViewContainer"], section[data-testid="stMain"] {
                 background-color: #0E1117 !important;
                 color: #C9D1D9 !important;
             }
-            
-            /* 3. Ép chữ tiêu đề và văn bản chuyển sang màu sáng tương phản */
-            h1, h2, h3, p, label, span, summary {
+            /* Tiêu đề và nhãn chữ điều khiển màu trắng */
+            h1, h2, h3, label, summary {
                 color: #F0F6FC !important;
             }
-            
-            /* 4. ĐÈ BẬT LỚP NỀN ẨN CỦA BONG BÓNG CHAT USER VÀ ASSISTANT */
-            div[data-testid="stChatMessage"] {
-                background-color: #161B22 !important;
-                border: 1px solid #30363D !important;
-                border-radius: 8px !important;
-            }
-            /* KHÓA CHẾT: Ép tất cả các lớp layer con bên trong bong bóng phải thành TRONG SUỐT */
-            div[data-testid="stChatMessage"] div, 
-            div[data-testid="stChatMessageContent"], 
-            div[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {
-                background-color: transparent !important;
-                background: transparent !important;
-            }
-            /* Đảm bảo toàn bộ chữ bên trong hộp chat phải là màu trắng sáng */
-            div[data-testid="stChatMessage"] *, 
-            div[data-testid="stChatMessage"] p, 
-            div[data-testid="stChatMessage"] span,
-            div[data-testid="stChatMessage"] strong {
-                color: #F0F6FC !important;
-            }
-            
-            /* 5. Cài đặt Payload nâng cao (Expander) */
+            /* Hộp cài đặt nâng cao Expander và ô chọn màu tối */
             div[data-testid="stExpander"] {
                 background-color: #161B22 !important;
                 border: 1px solid #30363D !important;
@@ -112,26 +82,39 @@ if st.session_state.accounts_data:
                 border: 1px solid #30363D !important;
             }
             
-            /* 6. Fix dải băng nền trắng ở đáy màn hình */
-            div[data-testid="stBottom"] {
-                background-color: #0E1117 !important;
-                background: #0E1117 !important;
+            /* 2. ÉP KHUNG CHAT VÀ TIN NHẮN GIỮ MÀU SÁNG RÕ RÀNG */
+            /* Bong bóng chat chuyển sang nền xám sáng/trắng mặc định */
+            div[data-testid="stChatMessage"] {
+                background-color: #F0F2F6 !important;
+                border: 1px solid #E2E8F0 !important;
+                border-radius: 8px !important;
             }
-            div[data-testid="stBottomBlockContainer"] {
+            /* KHÓA CHẾT CHỮ TRONG BOX CHAT: Bắt buộc chữ phải màu đen/xám đậm */
+            div[data-testid="stChatMessage"] *, 
+            div[data-testid="stChatMessage"] p, 
+            div[data-testid="stChatMessage"] span,
+            div[data-testid="stChatMessage"] strong {
+                color: #1E293B !important;
+            }
+            
+            /* 3. ÉP Ô NHẬP LIỆU ĐÁY GIỮ MÀU SÁNG BÌNH THƯỜNG */
+            /* Dải băng viền đáy vẫn màu tối để tiệp nền */
+            div[data-testid="stBottom"], div[data-testid="stBottomBlockContainer"] {
                 background-color: #0E1117 !important;
             }
+            /* Khung ô nhập chat màu trắng sáng tinh khôi */
             div[data-testid="stChatInput"] {
-                background-color: #161B22 !important;
-                border: 1px solid #30363D !important;
+                background-color: #FFFFFF !important;
+                border: 1px solid #CBD5E1 !important;
             }
+            /* Chữ bạn đang gõ hiển thị màu đen rõ ràng */
             div[data-testid="stChatInput"] textarea {
-                background-color: transparent !important;
-                color: #F0F6FC !important;
+                color: #0F172A !important;
             }
+            /* Nút bấm gửi mũi tên */
             div[data-testid="stChatInput"] button {
-                background-color: #21262D !important;
-                color: #F0F6FC !important;
-                border: 1px solid #30363D !important;
+                background-color: #F1F5F9 !important;
+                color: #0F172A !important;
             }
             </style>
         """, unsafe_allow_html=True)
