@@ -24,18 +24,19 @@ if "account_settings" not in st.session_state:
             "attachments": ""
         }
 
-# Hộp chứa tin nhắn tạm thời để hiển thị LẬP TỨC lên màn hình khi vừa nhấn Enter
+# Hộp chứa tin nhắn tạm thời hiển thị lập tức
 if "temp_messages" not in st.session_state:
     st.session_state.temp_messages = []
 
 st.title("💬 Phòng trò chuyện Đa tài khoản")
 st.markdown("---")
 
-# --- KHU VỰC ĐIỀU KHIỂN CHÍNH TRÊN TRANG CHÍNH ---
+# --- KHU VỰC ĐIỀU KHIỂN CHÍNH (CÓ THÊM CHẾ ĐỘ TỐI) ---
 if st.session_state.accounts_data:
     account_names = [f"Acc {i+1} ({acc.get('send_usename', '...')})" for i, acc in enumerate(st.session_state.accounts_data)]
     
-    col1, col2, col3 = st.columns([5, 2, 1])
+    # Chia thành 4 cột để giao diện cân đối
+    col1, col2, col3, col4 = st.columns([4, 1.5, 2, 1])
     
     with col1:
         selected_acc_name = st.selectbox("Chọn tài khoản hoạt động:", account_names)
@@ -48,11 +49,51 @@ if st.session_state.accounts_data:
         anonymous = st.checkbox("Ẩn danh", value=True)
         
     with col3:
+        st.markdown("<div style='padding-top: 35px;'></div>", unsafe_allow_html=True)
+        dark_mode = st.checkbox("Chế độ tối 🌙", value=False)
+        
+    with col4:
         st.markdown("<div style='padding-top: 28px;'></div>", unsafe_allow_html=True)
         if st.button("🔄", help="Đồng bộ dữ liệu mới từ Gist"):
             chat_api.load_accounts()
             st.session_state.accounts_data = chat_api.ACCOUNTS_CREDENTIALS
             st.rerun()
+
+    # --- XỬ LÝ CSS BẬT/TẮT CHẾ ĐỘ TỐI DYNAMIC ---
+    if dark_mode:
+        st.markdown("""
+            <style>
+            /* Nền ứng dụng và màu chữ chủ đạo */
+            .stApp {
+                background-color: #0E1117 !important;
+                color: #C9D1D9 !important;
+            }
+            /* Tiêu đề và nhãn chữ */
+            h1, h2, h3, p, label, span, summary {
+                color: #F0F6FC !important;
+            }
+            /* Hộp cài đặt nâng cao Expander */
+            div[data-testid="stExpander"] {
+                background-color: #161B22 !important;
+                border: 1px solid #30363D !important;
+            }
+            /* Các ô nhập liệu Input & Textarea */
+            input, textarea, select {
+                background-color: #21262D !important;
+                color: #F0F6FC !important;
+                border: 1px solid #30363D !important;
+            }
+            /* Bong bóng Chat của người khác (Assistant) */
+            div[data-testid="stChatMessage"] {
+                background-color: #161B22 !important;
+                border: 1px solid #30363D !important;
+            }
+            /* Thanh nhập chat dưới cùng */
+            div[data-testid="stChatInput"] {
+                background-color: #0E1117 !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
     # --- HỘP THOẠI CÀI ĐẶT PAYLOAD ---
     with st.expander("⚙️ Tùy chỉnh nâng cao Payload (Tên, Ảnh, Chanel, File đính kèm...)"):
@@ -75,16 +116,13 @@ st.markdown("---")
 # --- KHU VỰC HIỂN THỊ TIN NHẮN TỰ ĐỘNG CẬP NHẬT REAL-TIME ---
 @st.fragment(run_every="3s")
 def render_chat_window(chanel_id, my_username, my_send_name):
-    # Lấy dữ liệu tin nhắn mới từ Lazi
     messages = chat_api.fetch_msgs(chanel_id)
     
-    # Kiểm tra xem tin nhắn tạm thời nào đã được Lazi cập nhật thành công thì xóa khỏi hàng đợi tạm
     server_texts = [m.get('message', '') for m in messages]
     st.session_state.temp_messages = [t for t in st.session_state.temp_messages if t['message'] not in server_texts]
     
     chat_container = st.container(height=400)
     with chat_container:
-        # 1. Hiển thị tin nhắn chính thức tải từ server về
         if messages:
             for m in reversed(messages): 
                 sender = m.get('sender_name', 'Ẩn danh')
@@ -97,7 +135,6 @@ def render_chat_window(chanel_id, my_username, my_send_name):
                     with st.chat_message("assistant"):
                         st.write(f"**{sender}:** {msg_text}")
         
-        # 2. Hiển thị NGAY LẬP TỨC tin nhắn vừa ấn gửi (Trong khi chờ server Lazi load xong)
         for t in st.session_state.temp_messages:
             if t['username'] == my_username:
                 with st.chat_message("user"):
@@ -114,14 +151,12 @@ render_chat_window(current_chanel, username, st.session_state.account_settings[u
 if msg_input := st.chat_input("Nhập tin nhắn và nhấn Enter..."):
     current_settings = st.session_state.account_settings[username]
     
-    # Đút tin nhắn vào hàng đợi hiển thị tạm thời để UI cập nhật ngay tức thì
     st.session_state.temp_messages.append({
         "username": username,
         "message": msg_input
     })
     
-    # Tiến hành gửi payload ngầm lên hệ thống Lazi
     chat_api.send_msg(msg_input, cred, current_settings, anonymous)
     
     st.toast("🚀 Gửi tin nhắn thành công!")
-    st.rerun() # Kích hoạt vẽ lại màn hình để hiện tin nhắn tạm ngay lập tức
+    st.rerun()
