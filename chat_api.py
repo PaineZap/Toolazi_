@@ -4,7 +4,7 @@ import json
 session = requests.Session()
 
 # Dán link của bạn vào đây
-GIST_URL = "https://gist.githubusercontent.com/PaineZap/1f3c6112bca5515371b0ff02c5085918/raw/0b1794e370e85ccf6fbaa2de1386860adeae09fb/accounts.json" 
+GIST_URL = "https://gist.githubusercontent.com/PaineZap/1f3c6112bca5515371b0ff02c5085918/raw/d2c3b4c85924d4ab8122f5ddb9b23fb8f83b96e2/accounts.json" 
 
 ACCOUNTS_CREDENTIALS = []
 
